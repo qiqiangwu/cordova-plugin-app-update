@@ -100,22 +100,28 @@ public class DownloadHandler extends Handler {
 
         LOG.d(TAG, "APK Filename: " + apkFile.toString());
 
+        Intent i = new Intent(Intent.ACTION_VIEW);
         // 通过Intent安装APK文件
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
             LOG.d(TAG, "Build SDK Greater than or equal to Nougat");
+
+            // 7.0获取存储文件的uri
             String applicationId = (String) BuildHelper.getBuildConfigValue((Activity) mContext, "APPLICATION_ID");
             Uri apkUri = FileProvider.getUriForFile(mContext, applicationId + ".appupdate.provider", apkFile);
-            Intent i = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-            i.setData(apkUri);
-            i.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            mContext.startActivity(i);
+
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            // 赋予临时权限
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            i.setDataAndType(apkUri,"application/vnd.android.package-archive");
         }else{
             LOG.d(TAG, "Build SDK less than Nougat");
-            Intent i = new Intent(Intent.ACTION_VIEW);
+
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             i.setDataAndType(Uri.parse("file://" + apkFile.toString()), "application/vnd.android.package-archive");
-            mContext.startActivity(i);
         }
 
+        mContext.startActivity(i);
     }
 }
